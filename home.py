@@ -2,19 +2,26 @@ from PyQt5.QtWidgets import QApplication,QWidget,QPushButton,QLabel,QVBoxLayout,
 from PyQt5.QtCore import Qt, QDate
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtGui import QStandardItem, QStandardItemModel
+from PyQt5.QtGui import QStandardItem, QStandardItemModel, QFont
 
 from climbs_DB import *
+# from main import HomeScreen
+
+
 
 class UserScreen(QWidget):
     def __init__(self):
         super().__init__()
         self.settings()
         self.initUI()
+        # self.connects()
         self.show()
+        self.past_climbs()
         
         
     def initUI(self):
+        self.welcome_text = QLabel("Enter your Send Info")
+        self.welcome_text.setFont(QFont("Arial",25,5))
         self.route_name = QLineEdit()
         self.grade = QComboBox()
         self.grade.addItems(["V0","V1","V2","V3","V4","V5"])
@@ -25,10 +32,11 @@ class UserScreen(QWidget):
         self.submit = QPushButton("Submit")
         self.delete = QPushButton("Delete")
         self.reset = QPushButton("Reset")
+        self.logout = QPushButton("Log Out")
         self.date_box = QDateEdit()
         self.date_box.setDate(QDate.currentDate())
         self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(["ID","Date","Grade","Status","Route"])
+        self.table.setHorizontalHeaderLabels(["Route","Date","Grade","Status","ID"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.sortByColumn(1, Qt.DescendingOrder)
         
@@ -40,6 +48,7 @@ class UserScreen(QWidget):
         
         self.submit.clicked.connect(self.add_climb)
         self.delete.clicked.connect(self.del_climb)
+        
         self.master = QHBoxLayout()
         self.col1 = QVBoxLayout()
         self.col2 = QVBoxLayout()
@@ -65,13 +74,14 @@ class UserScreen(QWidget):
         row5.addWidget(self.reset)
         
         
-        self.col1.addWidget(QLabel("Enter your Send Info"))
+        self.col1.addWidget(self.welcome_text,alignment=Qt.AlignCenter)
         self.col1.addLayout(row1)
         self.col1.addLayout(row2)
         self.col1.addLayout(row3)
         self.col1.addLayout(row4)
         self.col1.addLayout(row5)
         self.col1.addWidget(self.submit)
+        self.col1.addWidget(self.logout)
         
         self.col2.addWidget(self.canvas)
         self.col2.addWidget(self.table)
@@ -81,36 +91,36 @@ class UserScreen(QWidget):
         
         self.setLayout(self.master)
         
-
+    # def connects(self):
+    #     self.logout.clicked.connect(self.logout_user)
+        
     
     def settings(self):
         self.setWindowTitle("UrbanClimber")
-        self.setGeometry(500,500,800,500)
+        self.setGeometry(500,500,800,600)
     
     def add_climb(self):
         route = self.route_name.text()
         grade = self.grade.currentText()
-        #notes = self.description.text()
         date = self.date_box.date().toString("MM-dd")
         status = self.status_box.currentText()
         
         query = QSqlQuery()
         query.prepare("""
-            INSERT INTO climb_database (date, grade, status, route)
+            INSERT INTO climb_database (route, date, grade, status)
             VALUES (?, ?, ?, ?)
         """)
-        
+        query.addBindValue(route)
         query.addBindValue(date)
         query.addBindValue(grade)
         query.addBindValue(status)
-        query.addBindValue(route)
         query.exec_()
         
         self.date_box.setDate(QDate.currentDate())
         self.grade.setCurrentIndex(0)
         self.route_name.clear()
+        self.description.clear()
         self.status_box.setCurrentIndex(0)
-        
         self.past_climbs()
         
     def del_climb(self):
@@ -118,8 +128,7 @@ class UserScreen(QWidget):
         if selected_row == -1:
             QMessageBox.warning(self, "No Climb Selected!","Please choose a climb to remove!")
             return
-
-        climb_id = int(self.table.item(selected_row,0).text())
+        climb_id = int(self.table.item(selected_row,4).text())
         
         confirm = QMessageBox.question(self, "Confirm?", "Are you sure?", QMessageBox.Yes | QMessageBox.No)
         if confirm == QMessageBox.No:
@@ -140,25 +149,28 @@ class UserScreen(QWidget):
         row = 0
         
         while query.next():
-            climb_id = query.value(0)
+            route = query.value(0)
             date = query.value(1)
-            grade = query.value(2)
+            grade =query.value(2)
             status = query.value(3)
-            route = query.value(4)
+            climb_id = query.value(4)
             
             delete_button = QPushButton('Delete')
             delete_button.clicked.connect(self.del_climb)
             
             self.table.insertRow(row)
-            self.table.setItem(row, 0, QTableWidgetItem(str(climb_id)))
+            self.table.setItem(row, 0, QTableWidgetItem(route))
             self.table.setItem(row, 1, QTableWidgetItem(date))
             self.table.setItem(row, 2, QTableWidgetItem(grade))
             self.table.setItem(row, 3, QTableWidgetItem(status))
-            self.table.setItem(row, 4, QTableWidgetItem(route))
+            self.table.setItem(row, 4, QTableWidgetItem(str(climb_id)))
             self.table.setCellWidget(row, 5, delete_button)
             
             row +=1
             
+    # def logout_user(self):
+    #     self.hide()
+    #     self.logged_out = HomeScreen()
             
             
             

@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import QApplication,QWidget,QPushButton,QLabel,QVBoxLayout
 from PyQt5.QtCore import Qt
-from start_screen import *
-from climbs_DB import *
+from start_screen import startScreen
+
+
 
 class HomeScreen(QWidget):
     def __init__(self):
@@ -31,7 +32,7 @@ class HomeScreen(QWidget):
     
     def next(self):
         self.hide()
-        self.scr2 = SecondScreen()
+        self.scr2 = startScreen()
         
         
 if __name__ in "__main__":

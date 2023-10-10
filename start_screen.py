@@ -1,8 +1,10 @@
-from PyQt5.QtWidgets import QApplication,QWidget,QPushButton,QLabel,QVBoxLayout
+from PyQt5.QtWidgets import QApplication,QWidget,QPushButton,QLabel,QVBoxLayout, QHBoxLayout
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from auth import *
-class SecondScreen(QWidget):
+
+
+class startScreen(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -12,15 +14,18 @@ class SecondScreen(QWidget):
         
         
     def initUI(self):
+        self.title = QLabel("UrbanClimber")
+        self.title.setFont(QFont("Arial",45,5))
         self.text = QLabel("Are you ready to send it?")
         self.options = QLabel("Please make a selection to continue")
-        self.btn_login = QPushButton("Login In")
+        self.btn_login = QPushButton("Log In")
         self.signup = QPushButton("Sign Up")
         
         self.master = QVBoxLayout()
         row = QHBoxLayout()
-        self.master.addWidget(self.text)
-        self.master.addWidget(self.options)
+        self.master.addWidget(self.title,alignment=Qt.AlignCenter)
+        self.master.addWidget(self.text, alignment=Qt.AlignCenter)
+        self.master.addWidget(self.options, alignment=Qt.AlignCenter)
         row.addWidget(self.btn_login)
         row.addWidget(self.signup)
         self.master.addLayout(row)
